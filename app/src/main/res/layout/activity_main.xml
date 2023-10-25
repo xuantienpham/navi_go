@@ -24,5 +24,65 @@
         android:insetLeft="0dp"
         android:text="Button" />
 
+<<<<<<< HEAD
+=======
+    <RelativeLayout
+        android:id="@+id/layoutSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#EFB7B7">
+
+        <TextView
+            android:id="@+id/lblFrom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:text="From" />
+
+        <EditText
+            android:id="@+id/editTexteFrom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/lblFrom"
+            android:ems="10"
+            android:inputType="text"
+            android:text="Name" />
+
+        <TextView
+            android:id="@+id/lblTo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/editTexteFrom"
+            android:layout_alignParentLeft="true"
+            android:text="To" />
+
+        <EditText
+            android:id="@+id/editTexteTo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/editTexteFrom"
+            android:layout_toRightOf="@id/lblTo"
+            android:ems="10"
+            android:inputType="text"
+            android:text="Name" />
+
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/editTexteTo"
+            android:text="Search" />
+
+        <TextView
+            android:id="@+id/lblLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btnSearch"
+            android:layout_alignParentLeft="true"
+            android:text="From" />
+    </RelativeLayout>
+
+>>>>>>> b983674 (Initial commit)
 
 </RelativeLayout>
