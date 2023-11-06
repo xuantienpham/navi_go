@@ -1,4 +1,4 @@
-package navi_go.osrm;
+package navi_go.model;
 
 public abstract class Result<T> {
     private Result() {}

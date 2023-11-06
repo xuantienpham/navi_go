@@ -1,16 +1,16 @@
-package navi_go.osrm;
+package navi_go.model;
 
 import android.os.Handler;
 
 public class OSRMViewModel {
-    private final OSRMRepository mOSRMRepository;
+    private final RequestRepository mOSRMRepository;
     private Handler resultHandler;
-    public OSRMViewModel(OSRMRepository osrmConnection) {
+    public OSRMViewModel(RequestRepository osrmConnection) {
         this.mOSRMRepository = osrmConnection;
     }
 
     public void makeOSRMRequest() {
-        mOSRMRepository.makeOSRMRequest(new OSRMCallback<String>() {
+        mOSRMRepository.makeOSRMRequest(new RequestCallback<String>() {
             @Override
             public void onComplete(Result<String> result) {
                 if(result instanceof Result.Success) {

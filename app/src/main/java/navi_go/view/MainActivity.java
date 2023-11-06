@@ -41,8 +41,8 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import navi_go.osrm.OSRMRepository;
-import navi_go.osrm.OSRMViewModel;
+import navi_go.model.RequestRepository;
+import navi_go.model.OSRMViewModel;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         mExecutorService = Executors.newFixedThreadPool(4);
         Handler mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper());
 
-        OSRMRepository osrmConnection = new OSRMRepository(mExecutorService, mainThreadHandler);
+        RequestRepository osrmConnection = new RequestRepository(mExecutorService, mainThreadHandler);
         OSRMViewModel osrmViewModel = new OSRMViewModel(osrmConnection);
         osrmViewModel.makeOSRMRequest();
         /*

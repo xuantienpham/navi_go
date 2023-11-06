@@ -1,4 +1,4 @@
-package navi_go.osrm;
+package navi_go.model;
 
 import android.os.Handler;
 
@@ -6,18 +6,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Executor;
 
-public class OSRMRepository {
+public class RequestRepository {
     private final String URL_GET = "https://nominatim.openstreetmap.org/search?q=Paris,France&format=jsonv2";
 
     private final Executor executor;
     private final Handler resultHandler;
 
-    public OSRMRepository(Executor executor, Handler resultHandler) {
+    public RequestRepository(Executor executor, Handler resultHandler) {
         this.executor = executor;
         this.resultHandler = resultHandler;
     }
 
-    public void makeOSRMRequest(OSRMCallback<String> callback, Handler resultHandler) {
+    public void makeOSRMRequest(RequestCallback<String> callback, Handler resultHandler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -53,7 +53,7 @@ public class OSRMRepository {
 
     private void notifyResult(
             final Result<String> result,
-            final OSRMCallback<String> callback,
+            final RequestCallback<String> callback,
             final Handler resultHandler
             ) {
         resultHandler.post(new Runnable() {
