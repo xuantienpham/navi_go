@@ -10,19 +10,17 @@ public class RequestRepository {
     private final String URL_GET = "https://nominatim.openstreetmap.org/search?q=Paris,France&format=jsonv2";
 
     private final Executor executor;
-    private final Handler resultHandler;
 
-    public RequestRepository(Executor executor, Handler resultHandler) {
+    public RequestRepository(Executor executor) {
         this.executor = executor;
-        this.resultHandler = resultHandler;
     }
 
-    public void makeOSRMRequest(RequestCallback<String> callback, Handler resultHandler) {
+    public void makeRequest(String urlString, RequestCallback<String> callback, Handler resultHandler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Result<String> result = makeSynchronousOSRMRequest();
+                    Result<String> result = makeSynchronousRequest(urlString);
                     notifyResult(result, callback, resultHandler);
                 } catch (Exception e) {
                     Result<String> error = new Result.Error<>(e);
@@ -33,16 +31,13 @@ public class RequestRepository {
     };
 
 
-    public Result<String> makeSynchronousOSRMRequest() {
+    public Result<String> makeSynchronousRequest(String urlString) {
         // HttpURLConnection logic
         try {
-            URL url = new URL(URL_GET);
+            URL url = new URL(urlString);
             HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
             httpConnection.setRequestMethod("GET");
-            //httpConnection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            //httpConnection.setRequestProperty("Accept", "application/json");
-            //httpConnection.setDoOutput(true);
-            //httpConnection.getOutputStream().write(jsonBody.getBytes("utf-8"));
+
 
             return new Result.Success<>(httpConnection.getInputStream().toString());
         } catch (Exception e) {

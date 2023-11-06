@@ -10,7 +10,7 @@ public class OSRMViewModel {
     }
 
     public void makeOSRMRequest() {
-        mOSRMRepository.makeOSRMRequest(new RequestCallback<String>() {
+        mOSRMRepository.makeRequest(null, new RequestCallback<String>() {
             @Override
             public void onComplete(Result<String> result) {
                 if(result instanceof Result.Success) {
