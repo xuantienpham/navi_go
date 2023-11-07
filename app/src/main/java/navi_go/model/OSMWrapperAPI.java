@@ -1,4 +1,4 @@
-package navi_go.view;
+package navi_go.model;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -141,7 +141,4 @@ public class OSMWrapperAPI {
         reader.close();
         return fileData.toString();
     }
-
-
-
 }

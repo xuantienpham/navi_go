@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context="navi_go.view.MainActivity">
 
     <org.osmdroid.views.MapView
         android:id="@+id/mainMap"
@@ -24,55 +24,36 @@
         android:insetLeft="0dp"
         android:text="Button" />
 
-<<<<<<< HEAD
-=======
-    <RelativeLayout
+    <navi_go.view.SearchRoutesView
         android:id="@+id/layoutSearch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#EFB7B7">
 
         <TextView
-            android:id="@+id/lblFrom"
-            android:layout_width="wrap_content"
+            android:id="@+id/lblDestination"
+            android:layout_width="110dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:text="From" />
+            android:text="Destination"
+            android:textSize="20sp" />
 
         <EditText
-            android:id="@+id/editTexteFrom"
+            android:id="@+id/editTexteDestination"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/lblFrom"
-            android:ems="10"
+            android:layout_toRightOf="@id/lblDestination"
             android:inputType="text"
-            android:text="Name" />
-
-        <TextView
-            android:id="@+id/lblTo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/editTexteFrom"
-            android:layout_alignParentLeft="true"
-            android:text="To" />
-
-        <EditText
-            android:id="@+id/editTexteTo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/editTexteFrom"
-            android:layout_toRightOf="@id/lblTo"
-            android:ems="10"
-            android:inputType="text"
-            android:text="Name" />
+            android:text="Destination"
+            android:textSize="20sp" />
 
         <Button
             android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/editTexteTo"
-            android:text="Search" />
+            android:layout_below="@id/editTexteDestination"
+            android:text="Search"
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/lblLog"
@@ -80,9 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/btnSearch"
             android:layout_alignParentLeft="true"
-            android:text="From" />
-    </RelativeLayout>
-
->>>>>>> b983674 (Initial commit)
+            android:text="Dialogue" />
+    </navi_go.view.SearchRoutesView>
 
 </RelativeLayout>

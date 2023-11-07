@@ -1,4 +1,4 @@
-package navi_go.view;
+package navi_go.model;
 
 import java.util.Map;
 

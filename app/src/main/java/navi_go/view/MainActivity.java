@@ -59,8 +59,6 @@ public class MainActivity extends AppCompatActivity {
     private float mScale;
     private SpeederOverlay mSpeederOverlay = null;
     private Marker actualPosition;
-    private MapView miniMap;
-
     private EditText mTxtViewFrom;
     private EditText mTxtViewTo;
     private Button mBtnSearch;
@@ -114,10 +112,12 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Search Path
-        mTxtViewFrom = (EditText)findViewById(R.id.editTexteFrom);
-        mTxtViewTo = (EditText)findViewById(R.id.editTexteTo);
+        //mTxtViewFrom = (EditText)findViewById(R.id.editTexteFrom);
+        mTxtViewTo = (EditText)findViewById(R.id.editTexteDestination);
         mBtnSearch = (Button)findViewById(R.id.btnSearch);
         mTxtViewLog = (TextView)findViewById(R.id.lblLog);
+
+        SearchRoutesView routes = (SearchRoutesView)findViewById(R.id.layoutSearch);
 
         mBtnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,8 +134,8 @@ public class MainActivity extends AppCompatActivity {
         mExecutorService = Executors.newFixedThreadPool(4);
         Handler mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper());
 
-        RequestRepository osrmConnection = new RequestRepository(mExecutorService, mainThreadHandler);
-        OSRMViewModel osrmViewModel = new OSRMViewModel(osrmConnection);
+        RequestRepository osrmConnection = new RequestRepository(mExecutorService);
+        OSRMViewModel osrmViewModel = new OSRMViewModel(osrmConnection, mainThreadHandler);
         osrmViewModel.makeOSRMRequest();
         /*
          * End of Connection to OSRM

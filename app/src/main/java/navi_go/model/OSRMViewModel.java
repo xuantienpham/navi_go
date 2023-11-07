@@ -5,8 +5,9 @@ import android.os.Handler;
 public class OSRMViewModel {
     private final RequestRepository mOSRMRepository;
     private Handler resultHandler;
-    public OSRMViewModel(RequestRepository osrmConnection) {
+    public OSRMViewModel(RequestRepository osrmConnection, Handler resultHandler) {
         this.mOSRMRepository = osrmConnection;
+        this.resultHandler = resultHandler;
     }
 
     public void makeOSRMRequest() {
