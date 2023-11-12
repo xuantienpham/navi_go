@@ -25,10 +25,10 @@
         android:text="Button" />
 
     <navi_go.view.SearchRoutesView
-        android:id="@+id/layoutSearch"
+        android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#EFB7B7">
+        >
 
         <TextView
             android:id="@+id/lblDestination"
@@ -39,7 +39,7 @@
             android:textSize="20sp" />
 
         <EditText
-            android:id="@+id/editTexteDestination"
+            android:id="@+id/editTextDestination"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/lblDestination"
@@ -51,7 +51,7 @@
             android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/editTexteDestination"
+            android:layout_below="@id/editTextDestination"
             android:text="Search"
             android:textSize="20sp" />
 

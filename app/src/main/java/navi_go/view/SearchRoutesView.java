@@ -2,13 +2,18 @@ package navi_go.view;
 
 import android.content.Context;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.example.osmandroid.R;
 
 import navi_go.model.RequestCallback;
 import navi_go.model.Result;
 
 public class SearchRoutesView extends RelativeLayout implements RequestCallback<String> {
+    private TextView lblLog;
     public SearchRoutesView(Context context) {
         super(context);
+        //lblLog = findViewById(R.id.lblLog);
     }
 
     @Override
@@ -17,8 +22,7 @@ public class SearchRoutesView extends RelativeLayout implements RequestCallback<
             // Happy path
 
             String s = ((Result.Success<String>) result).data;
-            //mainActivity.mTxtViewLog.setText(s);
-            //Toast.makeText(mainActivity.getBaseContext(), s, Toast.LENGTH_SHORT).show();
+            lblLog.setText(s);
 
         } else {
             // Show error in UI
