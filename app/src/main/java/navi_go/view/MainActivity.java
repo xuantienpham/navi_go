@@ -11,8 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -41,9 +39,6 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import navi_go.model.RequestRepository;
-import navi_go.model.OSRMViewModel;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
@@ -281,6 +276,9 @@ public class MainActivity extends AppCompatActivity {
         mRotationGestureOverlay = new RotationGestureOverlay(mMapView) {
             @Override
             public void onRotate(float deltaAngle) {
+                if(mCompassNorth.isNorthMode()) {
+                    return;
+                }
                 super.onRotate(deltaAngle);
                 mCompassNorth.onOrientationChanged(-mMapView.getMapOrientation(), null);
                 //miniMap.setMapOrientation(mMapView.getMapOrientation());
