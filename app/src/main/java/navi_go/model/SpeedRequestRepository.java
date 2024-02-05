@@ -5,7 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Executor;
 
-import navi_go.util.Result;
+import navi_go.model.Result;
 
 public class SpeedRequestRepository extends RequestRepository {
     public SpeedRequestRepository(Executor executor) {
