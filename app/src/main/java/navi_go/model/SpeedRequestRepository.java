@@ -5,14 +5,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Executor;
 
-import navi_go.model.Result;
-
-public class SpeedRequestRepository extends RequestRepository {
+public class SpeedRequestRepository extends HttpGetRequestRepository {
     public SpeedRequestRepository(Executor executor) {
         super(executor);
     }
 
-    public Result<String> makeSynchronousRequest(String urlString) {
+    public Result<String> makeSyncRequest(String urlString) {
         // HttpURLConnection logic
         try {
             URL url = new URL(urlString);
@@ -30,11 +28,13 @@ public class SpeedRequestRepository extends RequestRepository {
 
             //JSONObject jsonOSM = new JSONObject(result);
 
-            Result.Success<String> stringSuccess = new Result.Success<>(result);
+            //Result.Success<String> stringSuccess = new Result.Success<>(result);
             inputStream.close();
-            return stringSuccess;
+            //return stringSuccess;
+            return  null;
         } catch (Exception e) {
-            return new Result.Error<>(e);
+            //return new Result.Error<>(e);
+            return null;
         }
     }
 }

@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -39,6 +40,9 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import navi_go.model.HttpGetRequestRepository;
+import navi_go.model.OSRMViewModel;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
@@ -98,9 +102,9 @@ public class MainActivity extends AppCompatActivity {
          * Setting up map view
          */
         mMapView = findViewById(R.id.mainMap);
-        mMapView.setTileSource(TileSourceFactory.MAPNIK);    // render
-        mMapView.setBuiltInZoomControls(true);               // zoomable
-        mMapView.setMultiTouchControls(true);                // control on multi touch
+        mMapView.setTileSource(TileSourceFactory.MAPNIK);   // render
+        mMapView.setVisibility(View.VISIBLE);               // visible
+        mMapView.setMultiTouchControls(true);               // control on multi touch
         levelZoom = 20.0d;
         /*
          * end of setting up map view
@@ -131,33 +135,52 @@ public class MainActivity extends AppCompatActivity {
         layoutParamsLbl.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
         */
 
-        //lblDestination.setLayoutParams();
-        //mTxtViewFrom = (EditText)findViewById(R.id.editTexteFrom);
-        //mTxtViewTo = (EditText)findViewById(R.id.editTextDestination);
-        //mBtnSearch = (Button)findViewById(R.id.btnSearch);
-        //mTxtViewLog = (TextView)findViewById(R.id.lblLog);
+
+
+        mTxtViewFrom = (EditText)findViewById(R.id.editTextFrom);
+        mTxtViewTo = (EditText)findViewById(R.id.editTextDestination);
+        mBtnSearch = (Button)findViewById(R.id.btnSearch);
+        mTxtViewLog = (TextView)findViewById(R.id.lblLog);
 
         //SearchRoutesView routes = (SearchRoutesView)findViewById(R.id.SearchView);
+
+
+        mExecutorService = Executors.newFixedThreadPool(4);
+        Handler mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper());
+
+        GeoPoint start = new GeoPoint(2.3200410217200766,48.8588897);
+        GeoPoint target = new GeoPoint(4.8059012,43.9492493);
+
+        OSRMViewModel osrm = new OSRMViewModel(new HttpGetRequestRepository<>(mExecutorService), mainThreadHandler, mTxtViewLog);
+
+        mBtnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
         /*
         mBtnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mTxtViewLog.setText(mTxtViewFrom.getText() + " " + mTxtViewTo.getText());
+                osrm.makeOSRMRoutingRequest(start, target, null);
             }
         });
-*/
 
+         */
+
+
+        /*
+
+        RoadManager roadManager = new OSRMRoadManager(null, null);
+        roadManager.getRoads(null);
         /*
          * Connection to OSRM
          */
 
-        mExecutorService = Executors.newFixedThreadPool(4);
-        Handler mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper());
 
-        //RequestRepository osrmConnection = new RequestRepository(mExecutorService);
-        //OSRMViewModel osrmViewModel = new OSRMViewModel(osrmConnection, mainThreadHandler);
-        //osrmViewModel.makeOSRMRequest();
+
         /*
          * End of Connection to OSRM
          */
@@ -217,39 +240,11 @@ public class MainActivity extends AppCompatActivity {
          * End of Initialize polyline to show the path
          */
 
-        ctx = getBaseContext();
 
         /*
          *  initialize the North Compass
          */
-        mCompassNorth = new CompassNorth(context, mMapView)
-        {
-            @Override
-            public boolean onSingleTapConfirmed(MotionEvent e, MapView mapView) {
-                float x = e.getX();
-                float y = e.getY();
-                float centerX = MainActivity.COMPASS_POSITION_X * mScale;
-                float centerY = MainActivity.COMPASS_POSITION_Y * mScale;
-                float radius = MainActivity.COMPASS_RADIUS * mScale;
-
-                String txt = //"Radius=" + Float.toString(radius) +
-                        "Center X=" + Float.toString(centerX) +
-                        "Center Y=" + Float.toString(centerY) +
-                        "X=" + Float.toString(x) +
-                        "Y=" + Float.toString(y);
-
-                Toast.makeText(getBaseContext(), txt, Toast.LENGTH_SHORT).show();
-                //  if( taped point is out of circle) do nothing
-                if(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2) > Math.pow(radius, 2))
-                    return false;
-
-                boolean northMode = isNorthMode();
-                setNorthMode( !northMode ); // toggle the mode
-                mMapView.setMapOrientation(-getOrientation());
-                mRotationGestureOverlay.setEnabled( northMode );    // toggle enable/disable of gesture rotation
-                return true;
-            }
-        };
+        mCompassNorth = new CompassNorth(context, mMapView);
         mCompassNorth.setCompassCenter(MainActivity.COMPASS_POSITION_X, MainActivity.COMPASS_POSITION_Y);
         mMapView.getOverlays().add(mCompassNorth);
         mCompassNorth.enableCompass();
@@ -269,6 +264,31 @@ public class MainActivity extends AppCompatActivity {
         /*
          *  End of Initialize Speeder
          */
+
+        /* Initialize Button */
+
+
+        HttpGetRequestRepository.RequestCallback<String> callback = new HttpGetRequestRepository.RequestCallback<String>() {
+            @Override
+            public void onComplete(HttpGetRequestRepository.Result<String> result) {
+                if(result instanceof HttpGetRequestRepository.Result.Success) {
+                    // Happy path
+                    String s = ((HttpGetRequestRepository.Result.Success<String>)result).data;
+                    //String s =  ((Result<String>.Success<String>) result).data;
+                    //mainActivity.mTxtViewLog.setText(s);
+                    //Toast.makeText(mainActivity.getBaseContext(), s, Toast.LENGTH_SHORT).show();
+
+                } else {
+                    // Show error in UI
+                    Exception exc;
+                    exc = ((HttpGetRequestRepository.Result.Error<String>)result).exception;
+                    String s = exc.toString();
+                    //String s = ((Result.Error<String>) result).exception.toString();
+                    //Toast.makeText(mainActivity.ctx, s, Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
 
         /*
          *  Initialize rotation gesture

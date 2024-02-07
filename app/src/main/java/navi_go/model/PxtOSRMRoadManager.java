@@ -6,13 +6,6 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.osmdroid.bonuspack.routing.OSRMRoadManager;
-import org.osmdroid.bonuspack.routing.Road;
-import org.osmdroid.bonuspack.routing.RoadLeg;
-import org.osmdroid.bonuspack.routing.RoadManager;
-import org.osmdroid.bonuspack.routing.RoadNode;
-import org.osmdroid.bonuspack.utils.BonusPackHelper;
-import org.osmdroid.bonuspack.utils.PolylineEncoder;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 
@@ -31,7 +24,7 @@ import java.util.HashMap;
  *
  * @author Pham Xuan Tien
  */
-public class PxtOSRMRoadManager extends RoadManager {
+public class PxtOSRMRoadManager  {
 
     public static final String OSRM_SERVICE = "https://router.project-osrm.org/";
     public static final String MEAN_BY_CAR = "route/v1/driving/";
@@ -98,6 +91,7 @@ public class PxtOSRMRoadManager extends RoadManager {
     static final HashMap<Integer, Object> DIRECTIONS;
     static {
         DIRECTIONS = new HashMap<>();
+        /*
         DIRECTIONS.put(1, R.string.osmbonuspack_directions_1);
         DIRECTIONS.put(2, R.string.osmbonuspack_directions_2);
         DIRECTIONS.put(3, R.string.osmbonuspack_directions_3);
@@ -122,6 +116,8 @@ public class PxtOSRMRoadManager extends RoadManager {
         DIRECTIONS.put(32, R.string.osmbonuspack_directions_32);
         DIRECTIONS.put(33, R.string.osmbonuspack_directions_33);
         DIRECTIONS.put(34, R.string.osmbonuspack_directions_34);
+
+         */
     }
 
     public PxtOSRMRoadManager(Context context, String userAgent){
@@ -148,11 +144,11 @@ public class PxtOSRMRoadManager extends RoadManager {
             GeoPoint p = waypoints.get(i);
             if (i>0)
                 urlString.append(';');
-            urlString.append(geoPointAsLonLatString(p));
+            //urlString.append(geoPointAsLonLatString(p));
         }
         urlString.append("?alternatives="+(getAlternate?"true" : "false"));
         urlString.append("&overview=full&steps=true");
-        urlString.append(mOptions);
+        //urlString.append(mOptions);
         return urlString.toString();
     }
 
@@ -189,6 +185,7 @@ public class PxtOSRMRoadManager extends RoadManager {
 	}
 	*/
 
+    /*
     protected Road[] defaultRoad(ArrayList<GeoPoint> waypoints){
         Road[] roads = new Road[1];
         roads[0] = new Road(waypoints);
@@ -318,6 +315,8 @@ public class PxtOSRMRoadManager extends RoadManager {
         }
         return instructions;
     }
+
+     */
 }
 
 
