@@ -30,36 +30,28 @@
         android:layout_height="wrap_content"
         >
 
-        <TextView
-            android:id="@+id/lblDestination"
-            android:layout_width="110dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:text="Destination"
-            android:textSize="20sp" />
-
         <EditText
-            android:id="@+id/editTextDestination"
+            android:id="@+id/destinationEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/lblDestination"
             android:inputType="text"
             android:text="Destination"
             android:textSize="20sp" />
 
         <Button
-            android:id="@+id/btnSearch"
+            android:id="@+id/searchButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/editTextDestination"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/destinationEditText"
             android:text="Search"
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/lblLog"
+            android:id="@+id/resultTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/btnSearch"
+            android:layout_below="@id/searchButton"
             android:layout_alignParentLeft="true"
             android:text="Dialogue" />
     </RelativeLayout>

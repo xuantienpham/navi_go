@@ -48,9 +48,11 @@ public class CompassNorth extends CompassOverlay {
 
     @Override
     public void onDetach(MapView mapView) {
-        mCompassRoseBitmap = null;
-        mCompassNorthBitmap.recycle();
-        mCompassConventionalBitmap.recycle();
+        if(mCompassRoseBitmap == mCompassConventionalBitmap) {
+            mCompassNorthBitmap.recycle();
+        } else {
+            mCompassConventionalBitmap.recycle();
+        }
         super.onDetach(mapView);
     }
 

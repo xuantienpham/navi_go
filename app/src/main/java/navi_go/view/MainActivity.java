@@ -1,6 +1,7 @@
 package navi_go.view;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -10,7 +11,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,36 +45,51 @@ import navi_go.model.HttpGetRequestRepository;
 import navi_go.model.OSRMViewModel;
 
 public class MainActivity extends AppCompatActivity {
+
+    /** Les constants utils */
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     public static float COMPASS_POSITION_X = 350.0f;
     public static float COMPASS_POSITION_Y = 400.0f;
     public static float COMPASS_RADIUS = 20.0f;
-    private MapView mMapView = null;
-    private LocationManager mLocationManager;
-    private static double levelZoom;
-    private Polyline polyline = null;
-    private CompassNorth mCompassNorth = null;
+
+
+    /** Les composants de GPS */
+    private MapView mMap = null;    // map
+    private IMapController mMapController = null;    // map controller
+    private CompassNorth mCompassNorth = null;      // compass
+    private Polyline mPath = null;  // chemin à parcourir
+    private Polyline mGonePath = null;  // chemin parcouru
+    private SpeederOverlay mSpeeder = null; // compteur
+    private Marker mActualPositionIcon = null;  // icon de la position actuelle
+    private GeoPoint mActualPosition = null;    // geopoint actuelle
+    private LocationManager mLocationManager = null;    // gestionnaire de GPS provider
+    private LocationListener mLocationListener = null;  // listener de GPS
+
+
+
+
+
+    private double levelZoom = 0f;
     private RotationGestureOverlay mRotationGestureOverlay = null;
     private float bearing = 0.f;
     private float mScale;
-    private SpeederOverlay mSpeederOverlay = null;
-    private Marker actualPosition;
-    private EditText mTxtViewFrom;
-    private EditText mTxtViewTo;
-    private Button mBtnSearch;
-    public TextView mTxtViewLog;
 
-    private static final String GET_URL = "https://nominatim.openstreetmap.org/search?q=Paris,France&format=jsonv2";
-    private static final String USER_AGENT = "Mozilla/5.0";
+    /** UI de search destination GPS */
+    private EditText mDestinationTextView;
+    private Button mSearchButton;
+    private TextView mResultTextView;
 
+    /** gestion of current thread */
     ExecutorService mExecutorService = null;
     Handler mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper());
 
-    public Context ctx;// = getBaseContext();
+
 
     // ===========================================================
     // Life Cycle
     // ===========================================================
+
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,67 +97,36 @@ public class MainActivity extends AppCompatActivity {
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context));
         setContentView(R.layout.activity_main);
 
-        /*
-         *  permissions
-         */
+        /* permissions */
         ArrayList<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         permissions.add(Manifest.permission.INTERNET);
         permissions.add(Manifest.permission.ACCESS_NETWORK_STATE);
         requestPermissionsIfNecessary(permissions);
-        /*
-         *  end of permissions
-         */
+        /* end of permissions */
 
         // density of resolution
         mScale = context.getResources().getDisplayMetrics().density;
 
-        /*
-         * Setting up map view
-         */
-        mMapView = findViewById(R.id.mainMap);
-        mMapView.setTileSource(TileSourceFactory.MAPNIK);   // render
-        mMapView.setVisibility(View.VISIBLE);               // visible
-        mMapView.setMultiTouchControls(true);               // control on multi touch
-        levelZoom = 20.0d;
-        /*
-         * end of setting up map view
-         */
+        /* Setting up map view */
+        mMap = findViewById(R.id.mainMap);
+        mMap.setTileSource(TileSourceFactory.MAPNIK);   // render
+        mMap.setMaxZoomLevel(18.d);                     // max zoom level
+        mMap.setMinZoomLevel(5.d);                      // min zoom level
+        mMap.getController();
+        mMap.setVisibility(View.VISIBLE);               // visible
+        mMap.setMultiTouchControls(true);               // control on multi touch
+        mMap.setEnabled(true);
+        mMapController = mMap.getController();
+        /* end of setting up map view */
 
 
-        /*
-         * Search Path
-         */
-        /*SearchRoutesView searchRoutesView = new SearchRoutesView(context);
-        //RelativeLayout.LayoutParams layoutParamsRoutesView = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        RelativeLayout.LayoutParams layoutParamsRoutesView = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, (int) 400);
-        layoutParamsRoutesView.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        layoutParamsRoutesView.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-        searchRoutesView.setLayoutParams(layoutParamsRoutesView);
-        searchRoutesView.setBackgroundColor(Color.BLUE);
-
-        //RelativeLayout rl = new RelativeLayout(context);
-        //rl.setBac
-
-        /*
-        searchRoutesView.setLayoutParams(new ViewGroup.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-
-        TextView lblDestination = new TextView(context);
-        RelativeLayout.LayoutParams layoutParamsLbl = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
-        layoutParamsLbl.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-        layoutParamsLbl.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        */
-
-
-
-        mTxtViewFrom = (EditText)findViewById(R.id.editTextFrom);
-        mTxtViewTo = (EditText)findViewById(R.id.editTextDestination);
-        mBtnSearch = (Button)findViewById(R.id.btnSearch);
-        mTxtViewLog = (TextView)findViewById(R.id.lblLog);
-
-        //SearchRoutesView routes = (SearchRoutesView)findViewById(R.id.SearchView);
+        /* Search Path */
+        mDestinationTextView = (EditText)findViewById(R.id.destinationEditText);
+        mSearchButton = (Button)findViewById(R.id.searchButton);
+        mResultTextView = findViewById(R.id.resultTextView);
+        /* end of Search Path */
 
 
         mExecutorService = Executors.newFixedThreadPool(4);
@@ -151,40 +135,21 @@ public class MainActivity extends AppCompatActivity {
         GeoPoint start = new GeoPoint(2.3200410217200766,48.8588897);
         GeoPoint target = new GeoPoint(4.8059012,43.9492493);
 
-        OSRMViewModel osrm = new OSRMViewModel(new HttpGetRequestRepository<>(mExecutorService), mainThreadHandler, mTxtViewLog);
+        OSRMViewModel osrm = new OSRMViewModel(new HttpGetRequestRepository<>(mExecutorService), mainThreadHandler, mResultTextView);
 
-        mBtnSearch.setOnClickListener(new View.OnClickListener() {
+        mSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
             }
         });
 
-        /*
-        mBtnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                osrm.makeOSRMRoutingRequest(start, target, null);
-            }
-        });
-
-         */
-
-
-        /*
-
-        RoadManager roadManager = new OSRMRoadManager(null, null);
-        roadManager.getRoads(null);
-        /*
-         * Connection to OSRM
-         */
 
 
 
         /*
          * End of Connection to OSRM
          */
-
         // initialize the Location Manger
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -206,13 +171,15 @@ public class MainActivity extends AppCompatActivity {
          */
         GeoPoint startPoint;
         if (location != null) {
-            startPoint = new GeoPoint(location);
+            mActualPosition = new GeoPoint(location);
         } else {
-            startPoint = new GeoPoint(10.78456d, 106.65679d);
+            mActualPosition = new GeoPoint(10.7845174, 106.6570313);
         }
-        IMapController mapController = mMapView.getController();
-        mapController.setCenter(startPoint);
-        mapController.setZoom(MainActivity.levelZoom);
+        //lat="10.7845174" lon="106.6570313">
+
+        mMapController.setZoom(15d);
+        mMapController.setCenter(mActualPosition);
+
         /*
          * End of setting up map view to last know location or default location (lat: 10.78456d, lon: 106.65679d)
          */
@@ -220,9 +187,9 @@ public class MainActivity extends AppCompatActivity {
         /*
          * Initialize marker of actual position
          */
-        actualPosition = new Marker(mMapView);
-        actualPosition.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        mMapView.getOverlays().add(actualPosition);
+        mActualPositionIcon = new Marker(mMap);
+        mActualPositionIcon.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        mMap.getOverlays().add(mActualPositionIcon);
         /*
          * End of initialize marker of actual position
          */
@@ -231,11 +198,9 @@ public class MainActivity extends AppCompatActivity {
          * Initialize polyline to show the path
          */
         ArrayList<GeoPoint> geoPoints = new ArrayList<>();
-        polyline = new Polyline();
-        polyline.setPoints(geoPoints);
-        polyline.setColor(Color.BLUE);
-        polyline.setWidth(10f * mScale);
-        mMapView.getOverlays().add(polyline);  // add line to the overlays of map
+        mPath = new Polyline();
+        mPath.setPoints(geoPoints);
+        mMap.getOverlays().add(mPath);  // add line to the overlays of map
         /*
          * End of Initialize polyline to show the path
          */
@@ -244,9 +209,9 @@ public class MainActivity extends AppCompatActivity {
         /*
          *  initialize the North Compass
          */
-        mCompassNorth = new CompassNorth(context, mMapView);
+        mCompassNorth = new CompassNorth(context, mMap);
         mCompassNorth.setCompassCenter(MainActivity.COMPASS_POSITION_X, MainActivity.COMPASS_POSITION_Y);
-        mMapView.getOverlays().add(mCompassNorth);
+        mMap.getOverlays().add(mCompassNorth);
         mCompassNorth.enableCompass();
         mCompassNorth.onOrientationChanged(0f, null);
         /*
@@ -256,11 +221,11 @@ public class MainActivity extends AppCompatActivity {
         /*
          *  Initialize Speeder
          */
-        mSpeederOverlay = new SpeederOverlay(context, mMapView);
-        mSpeederOverlay.setSpeederCenter(50f, 600f);
-        mMapView.getOverlayManager().add(mSpeederOverlay);
-        mSpeederOverlay.onMaxSpeedChanged(50);
-        mSpeederOverlay.enableSpeeder();
+        mSpeeder = new SpeederOverlay(context, mMap);
+        mSpeeder.setSpeederCenter(50f, 600f);
+        mMap.getOverlayManager().add(mSpeeder);
+        mSpeeder.onMaxSpeedChanged(50);
+        mSpeeder.enableSpeeder();
         /*
          *  End of Initialize Speeder
          */
@@ -293,35 +258,24 @@ public class MainActivity extends AppCompatActivity {
         /*
          *  Initialize rotation gesture
          */
-        mRotationGestureOverlay = new RotationGestureOverlay(mMapView) {
+        mRotationGestureOverlay = new RotationGestureOverlay(mMap) {
             @Override
             public void onRotate(float deltaAngle) {
                 if(mCompassNorth.isNorthMode()) {
                     return;
                 }
                 super.onRotate(deltaAngle);
-                mCompassNorth.onOrientationChanged(-mMapView.getMapOrientation(), null);
+                mCompassNorth.onOrientationChanged(-mMap.getMapOrientation(), null);
                 //miniMap.setMapOrientation(mMapView.getMapOrientation());
                 //miniMap.getController().zoomTo(mMapView.getZoomLevelDouble() - 3);
             }
         };
-        mMapView.getOverlays().add(this.mRotationGestureOverlay);
-        mMapView.setMultiTouchControls(true);
+        mMap.getOverlays().add(this.mRotationGestureOverlay);
+        mMap.setMultiTouchControls(true);
         /*
          *  End of Initialize rotation gesture
          */
 
-        /*
-         * Initialize mini-map
-         */
-        MinimapOverlay minimapOverlay = new MinimapOverlay(context, mMapView.getTileRequestCompleteHandler());
-        minimapOverlay.setZoomDifference(4);
-        minimapOverlay.setWidth(200);
-        minimapOverlay.setHeight(200);
-        //mMapView.getOverlays().add(minimapOverlay);
-        /*
-         * End of Initialize mini-map
-         */
 
         addLocationListener();
     }
@@ -330,14 +284,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause () {
         super.onPause();
-        mMapView.onPause();
+        mMap.onPause();
     }
 
 
     @Override
     public void onResume () {
         super.onResume();
-        mMapView.onResume();
+        mMap.onResume();
     }
 
 
@@ -398,22 +352,22 @@ public class MainActivity extends AppCompatActivity {
                     bearing = location.getBearing();
                     //  if compass is not north mode, update orientation of compass and map
                     if (!mCompassNorth.isNorthMode()) {
-                        mMapView.setMapOrientation(-bearing);
+                        mMap.setMapOrientation(-bearing);
                         mCompassNorth.onOrientationChanged(bearing, null);
                     }
                 }
 
                 //  if location has speed, update Speeder
                 if (location.hasSpeed()) {
-                    mSpeederOverlay.onSpeedChanged((int) (location.getSpeed() * 3.6f));
+                    mSpeeder.onSpeedChanged((int) (location.getSpeed() * 3.6f));
                 }
 
                 GeoPoint newPosition = new GeoPoint(location);
 
                 //  update the actual position with location
-                actualPosition.setPosition(newPosition);
+                mActualPositionIcon.setPosition(newPosition);
                 //  add new position to polyline
-                polyline.addPoint(newPosition);
+                mPath.addPoint(newPosition);
 
                 //miniMap.getController().animateTo(newPosition);
 
@@ -434,7 +388,7 @@ public class MainActivity extends AppCompatActivity {
                         " - Speed : " + speed_km_p_h + " km/h" +
                         " - Accuracy : " + 0 + " m";
                 Toast.makeText(getBaseContext(), txt, Toast.LENGTH_SHORT).show();
-                mMapView.getController().animateTo(newPosition, MainActivity.levelZoom, 200L);
+                mMap.getController().animateTo(newPosition, mMap.getZoomLevelDouble(), 200L);
                 //miniMap.getController().animateTo(newPosition, MainActivity.levelZoom-3, 200L);
             }
         };
