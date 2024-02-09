@@ -11,6 +11,8 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url "https://jitpack.io" }
+        //maven { url "https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind" }
+        //maven { url "https://mvnrepository.com/artifact/com.google.code.gson/gson" }
     }
 }
 rootProject.name = "osm android"

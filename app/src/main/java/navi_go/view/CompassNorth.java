@@ -125,8 +125,8 @@ public class CompassNorth extends CompassOverlay {
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e, MapView mapView) {
         // toggle mode
-        setNorthMode( !mNorthMode );
-        return true;
+        //setNorthMode( !mNorthMode );
+        return false;
     }
 
 

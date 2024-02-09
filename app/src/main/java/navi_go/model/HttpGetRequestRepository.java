@@ -6,8 +6,10 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class HttpGetRequestRepository<T> {
+public class HttpGetRequestRepository {
 
     public abstract static class Result<T> {
         private Result() {}
@@ -29,9 +31,11 @@ public class HttpGetRequestRepository<T> {
         }
     }
 
-    public interface RequestCallback<T> {
-        void onComplete(Result<T> result);
+
+    public interface Callback {
+        void onComplete(Result<String> result);
     }
+
 
     public interface Parser<T> {
         T parse(String string);
@@ -40,20 +44,34 @@ public class HttpGetRequestRepository<T> {
 
     private final Executor executor;
 
-
+    /**
+     * Constructor of repository of HTTP Request
+     * @param executor loop of thread, used for each new request called.
+     */
     public HttpGetRequestRepository(Executor executor) {
-        this.executor = executor;
+        if(executor != null) {
+            this.executor = executor;
+        } else {
+            this.executor = Executors.newFixedThreadPool(4);
+        }
     }
 
-    public void makeAsyncRequest(String urlString, Parser<T> parser, RequestCallback<T> callback, Handler resultHandler) {
+
+    /**
+     * Make a asynchronous request on network by http in GET methode. When result is ready, callback is called w
+     * @param urlString address of server http.
+     * @param callback  return point of asynchronous call.
+     * @param resultHandler thread execute the callback.
+     */
+    public void makeAsyncRequest(String urlString, Callback callback, Handler resultHandler) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Result<T> result = makeSyncRequest(urlString, parser);
+                    Result<String> result = makeSyncRequest(urlString);
                     notifyResult(result, callback, resultHandler);
                 } catch (Exception e) {
-                    Result<T> error = new Result.Error<>(e);
+                    Result<String> error = new Result.Error<>(e);
                     notifyResult(error, callback, resultHandler);
                 }
             }
@@ -61,7 +79,13 @@ public class HttpGetRequestRepository<T> {
     }
 
 
-    public Result<T> makeSyncRequest(String urlString, Parser<T> parser) {
+    /**
+     * make a request on network by http in GET methode. Call blocking thread. Don't use on UI thread.
+     * If not, it throw NetWorkOnMainThreadException.
+     * @param urlString address of server http.
+     * @return result of request in String.
+     */
+    public Result<String> makeSyncRequest(String urlString) {
         // HttpURLConnection logic
         try {
             URL url = new URL(urlString);
@@ -76,20 +100,23 @@ public class HttpGetRequestRepository<T> {
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 stringBuilder.append(new String(buffer, 0, bytesRead));
             }
-
             String result = stringBuilder.toString();
-            T resultTyped = parser.parse(result);
-
-            return new Result.Success<T>(resultTyped);
+            return new Result.Success<>(result);
         } catch (Exception e) {
-            return new Result.Error<T>(e);
+            return new Result.Error<>(e);
         }
     }
 
 
+    /**
+     * notify result to callback that will be executed in handler.
+     * @param result    result of request http.
+     * @param callback  callback on return.
+     * @param resultHandler thread execute callback.
+     */
     private void notifyResult(
-            final Result<T> result,
-            final RequestCallback<T> callback,
+            final Result<String> result,
+            final Callback callback,
             final Handler resultHandler
             ) {
         resultHandler.post(new Runnable() {
