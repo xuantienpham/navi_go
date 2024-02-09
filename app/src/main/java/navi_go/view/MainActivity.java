@@ -66,13 +66,8 @@ public class MainActivity extends AppCompatActivity {
     private LocationListener mLocationListener = null;  // listener de GPS
 
 
-
-
-
-    private double levelZoom = 0f;
     private RotationGestureOverlay mRotationGestureOverlay = null;
     private float bearing = 0.f;
-    private float mScale;
 
     /** UI de search destination GPS */
     private EditText mDestinationTextView;
@@ -106,54 +101,53 @@ public class MainActivity extends AppCompatActivity {
         requestPermissionsIfNecessary(permissions);
         /* end of permissions */
 
-        // density of resolution
-        mScale = context.getResources().getDisplayMetrics().density;
-
         /* Setting up map view */
         mMap = findViewById(R.id.mainMap);
         mMap.setTileSource(TileSourceFactory.MAPNIK);   // render
-        mMap.setMaxZoomLevel(18.d);                     // max zoom level
+        mMap.setMaxZoomLevel(20.d);                     // max zoom level
         mMap.setMinZoomLevel(5.d);                      // min zoom level
-        mMap.getController();
         mMap.setVisibility(View.VISIBLE);               // visible
         mMap.setMultiTouchControls(true);               // control on multi touch
         mMap.setEnabled(true);
         mMapController = mMap.getController();
+        mMapController.setZoom(20d);                    // zoom level 18
         /* end of setting up map view */
 
+        /* Setting up LocationManager */
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        /* End of Setting up LocationManager */
 
         /* Search Path */
         mDestinationTextView = (EditText)findViewById(R.id.destinationEditText);
         mSearchButton = (Button)findViewById(R.id.searchButton);
         mResultTextView = findViewById(R.id.resultTextView);
-        /* end of Search Path */
+        /* End of Search Path */
 
-
+        /* Gestion current thread */
         mExecutorService = Executors.newFixedThreadPool(4);
         Handler mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper());
+        /* End of Gestion current thread */
 
+        /* request OSRMViewModel */
         GeoPoint start = new GeoPoint(2.3200410217200766,48.8588897);
         GeoPoint target = new GeoPoint(4.8059012,43.9492493);
 
         OSRMViewModel osrm = new OSRMViewModel(new HttpGetRequestRepository<>(mExecutorService), mainThreadHandler, mResultTextView);
+        /* request OSRMViewModel */
 
+
+        /* Setting up OnClickListener on SearchButton */
         mSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
             }
         });
+        /* End of Setting up OnClickListener on SearchButton */
 
 
 
-
-        /*
-         * End of Connection to OSRM
-         */
-        // initialize the Location Manger
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        // request last know location on Location Service
+        /* request last know location on Location Service */
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -166,33 +160,42 @@ public class MainActivity extends AppCompatActivity {
         }
         Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-        /*
-         * Setting up map view to last know location or default location (lat: 10.78456d, lon: 106.65679d)
-         */
         GeoPoint startPoint;
         if (location != null) {
             mActualPosition = new GeoPoint(location);
         } else {
             mActualPosition = new GeoPoint(10.7845174, 106.6570313);
         }
-        //lat="10.7845174" lon="106.6570313">
+        //lat="10.7845174" lon="106.6570313 6 Tu Hai
 
-        mMapController.setZoom(15d);
-        mMapController.setCenter(mActualPosition);
 
-        /*
-         * End of setting up map view to last know location or default location (lat: 10.78456d, lon: 106.65679d)
-         */
+        mMapController.setCenter(mActualPosition);  // map center in actual position
 
-        /*
-         * Initialize marker of actual position
-         */
+
         mActualPositionIcon = new Marker(mMap);
         mActualPositionIcon.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        mActualPositionIcon.setPosition(mActualPosition);
         mMap.getOverlays().add(mActualPositionIcon);
-        /*
-         * End of initialize marker of actual position
-         */
+
+
+        /* LocationListener */
+        mLocationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                mActualPosition = new GeoPoint(location);
+                mActualPositionIcon.setPosition(mActualPosition);
+                if(location.hasSpeed()) {
+                    mSpeeder.onSpeedChanged((int)(location.getSpeed()*3.6));
+                }
+                if(location.hasBearing()) {
+                    float bearing = location.getBearing();
+                    mMap.setMapOrientation(bearing);
+                    mCompassNorth. onOrientationChanged(bearing, null);
+                }
+            }
+        };
+        /* End of LocationListener */
+
 
         /*
          * Initialize polyline to show the path
@@ -206,33 +209,23 @@ public class MainActivity extends AppCompatActivity {
          */
 
 
-        /*
-         *  initialize the North Compass
-         */
+        /* North Compass */
         mCompassNorth = new CompassNorth(context, mMap);
         mCompassNorth.setCompassCenter(MainActivity.COMPASS_POSITION_X, MainActivity.COMPASS_POSITION_Y);
         mMap.getOverlays().add(mCompassNorth);
         mCompassNorth.enableCompass();
         mCompassNorth.onOrientationChanged(0f, null);
-        /*
-         *  End of Initialize the North Compass
-         */
+        /* End of North Compass */        /*
 
-        /*
-         *  Initialize Speeder
-         */
+        /* Speeder */
         mSpeeder = new SpeederOverlay(context, mMap);
         mSpeeder.setSpeederCenter(50f, 600f);
         mMap.getOverlayManager().add(mSpeeder);
         mSpeeder.onMaxSpeedChanged(50);
         mSpeeder.enableSpeeder();
-        /*
-         *  End of Initialize Speeder
-         */
+        /* End of Speeder */
 
-        /* Initialize Button */
-
-
+        /* OSRM Request Callback */
         HttpGetRequestRepository.RequestCallback<String> callback = new HttpGetRequestRepository.RequestCallback<String>() {
             @Override
             public void onComplete(HttpGetRequestRepository.Result<String> result) {
@@ -253,11 +246,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        /* End of OSRM Request Callback */
 
 
-        /*
-         *  Initialize rotation gesture
-         */
+        /* Rotation gesture */
         mRotationGestureOverlay = new RotationGestureOverlay(mMap) {
             @Override
             public void onRotate(float deltaAngle) {
@@ -266,16 +258,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 super.onRotate(deltaAngle);
                 mCompassNorth.onOrientationChanged(-mMap.getMapOrientation(), null);
-                //miniMap.setMapOrientation(mMapView.getMapOrientation());
-                //miniMap.getController().zoomTo(mMapView.getZoomLevelDouble() - 3);
             }
         };
         mMap.getOverlays().add(this.mRotationGestureOverlay);
-        mMap.setMultiTouchControls(true);
-        /*
-         *  End of Initialize rotation gesture
-         */
-
+        /* End of Rotation gesture */
 
         addLocationListener();
     }
@@ -285,14 +271,34 @@ public class MainActivity extends AppCompatActivity {
     public void onPause () {
         super.onPause();
         mMap.onPause();
+        mLocationManager.removeUpdates(mLocationListener);
     }
 
 
     @Override
+    public void onStop () {
+        super.onStop();
+        mLocationManager.removeUpdates(mLocationListener);
+    }
+
+    @SuppressLint("MissingPermission")
+    @Override
     public void onResume () {
         super.onResume();
         mMap.onResume();
+        if(mLocationListener != null) {
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 10, mLocationListener);
+        }
     }
+
+    @Override
+    public void onDestroy() {
+        mMap.onDetach();
+        mLocationManager.removeUpdates(mLocationListener);
+        super.onDestroy();
+    }
+
+
 
 
     // ===========================================================
@@ -371,25 +377,6 @@ public class MainActivity extends AppCompatActivity {
 
                 //miniMap.getController().animateTo(newPosition);
 
-                RelativeLayout relativeLayout = (RelativeLayout)findViewById(R.id.main);
-                int number = relativeLayout.getChildCount();
-                //relativeLayout.getChildAt(00).
-
-
-
-                String txt = //relativeLayout.getChildAt(0).getClass().getName() + " " +
-                        //relativeLayout.getChildAt(1).getClass().getName() +
-                //Integer.toString(number) +
-                        "Lat : " + location.getLatitude() +
-                        " - Lon : " + location.getLongitude() +
-                        " - Alt : " + location.getAltitude() +
-                        " - Time : " + hour + ":" + minute + ":" + second +
-                        " - Bear : " + bearing + "°" +
-                        " - Speed : " + speed_km_p_h + " km/h" +
-                        " - Accuracy : " + 0 + " m";
-                Toast.makeText(getBaseContext(), txt, Toast.LENGTH_SHORT).show();
-                mMap.getController().animateTo(newPosition, mMap.getZoomLevelDouble(), 200L);
-                //miniMap.getController().animateTo(newPosition, MainActivity.levelZoom-3, 200L);
             }
         };
 
@@ -406,7 +393,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getBaseContext(), "Pas de permission !", Toast.LENGTH_SHORT).show();
             return;
         }
-        //mLocationManager.requestLocationUpdates(LocationManager.FUSED_PROVIDER, 200, 10, mLocationListener);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 10, mLocationListener);
     }
 
